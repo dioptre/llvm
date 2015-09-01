@@ -136,6 +136,7 @@ protected:
                                 std::string *ErrorStr,
                                 std::shared_ptr<MCJITMemoryManager> MM,
                                 std::shared_ptr<RuntimeDyld::SymbolResolver> SR,
+                                std::shared_ptr<RuntimeDyld::TLSSymbolResolver> TLSSR,
                                 std::unique_ptr<TargetMachine> TM);
 
   static ExecutionEngine *(*OrcMCJITReplacementCtor)(
@@ -510,6 +511,7 @@ private:
   CodeGenOpt::Level OptLevel;
   std::shared_ptr<MCJITMemoryManager> MemMgr;
   std::shared_ptr<RuntimeDyld::SymbolResolver> Resolver;
+  std::shared_ptr<RuntimeDyld::TLSSymbolResolver> TLSResolver;
   TargetOptions Options;
   Reloc::Model RelocModel;
   CodeModel::Model CMModel;
@@ -549,6 +551,9 @@ public:
 
   EngineBuilder&
   setSymbolResolver(std::unique_ptr<RuntimeDyld::SymbolResolver> SR);
+
+  EngineBuilder&
+  setTLSSymbolResolver(std::unique_ptr<RuntimeDyld::TLSSymbolResolver> SR);
 
   /// setErrorStr - Set the error string to write to on error.  This option
   /// defaults to NULL.
