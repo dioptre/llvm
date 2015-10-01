@@ -85,7 +85,7 @@ uint8_t *SectionMemoryManager::allocateSection(MemoryGroup &MemGroup,
   // Save this address as the basis for our next request
   MemGroup.Near = MB;
 
-  MemGroup.AllocatedMem.push_back(MB);
+  MemGroup.PendingMem.push_back(MB);
   Addr = (uintptr_t)MB.base();
   uintptr_t EndOfBlock = Addr + MB.size();
 
@@ -140,6 +140,14 @@ bool SectionMemoryManager::finalizeMemory(std::string *ErrMsg)
   // relocations) will get to the data cache but not to the instruction cache.
   invalidateInstructionCache();
 
+  // Now, remember that we have successfully applied the permissions to avoid
+  // having to apply them again.
+  CodeMem.AllocatedMem.append(CodeMem.PendingMem.begin(),CodeMem.PendingMem.end());
+  CodeMem.PendingMem.clear();
+
+  RODataMem.AllocatedMem.append(RODataMem.PendingMem.begin(),RODataMem.PendingMem.end());
+  RODataMem.PendingMem.clear();
+
   return false;
 }
 
@@ -147,31 +155,25 @@ std::error_code
 SectionMemoryManager::applyMemoryGroupPermissions(MemoryGroup &MemGroup,
                                                   unsigned Permissions) {
 
-  for (int i = 0, e = MemGroup.AllocatedMem.size(); i != e; ++i) {
-    std::error_code ec;
-    ec =
-        sys::Memory::protectMappedMemory(MemGroup.AllocatedMem[i], Permissions);
-    if (ec) {
-      return ec;
-    }
-  }
+  for (sys::MemoryBlock &MB : MemGroup.PendingMem)
+    if (std::error_code EC = sys::Memory::protectMappedMemory(MB, Permissions))
+      return EC;
 
   return std::error_code();
 }
 
 void SectionMemoryManager::invalidateInstructionCache() {
-  for (int i = 0, e = CodeMem.AllocatedMem.size(); i != e; ++i)
-    sys::Memory::InvalidateInstructionCache(CodeMem.AllocatedMem[i].base(),
-                                            CodeMem.AllocatedMem[i].size());
+  for (sys::MemoryBlock &Block : CodeMem.PendingMem)
+    sys::Memory::InvalidateInstructionCache(Block.base(), Block.size());
 }
 
 SectionMemoryManager::~SectionMemoryManager() {
-  for (unsigned i = 0, e = CodeMem.AllocatedMem.size(); i != e; ++i)
-    sys::Memory::releaseMappedMemory(CodeMem.AllocatedMem[i]);
-  for (unsigned i = 0, e = RWDataMem.AllocatedMem.size(); i != e; ++i)
-    sys::Memory::releaseMappedMemory(RWDataMem.AllocatedMem[i]);
-  for (unsigned i = 0, e = RODataMem.AllocatedMem.size(); i != e; ++i)
-    sys::Memory::releaseMappedMemory(RODataMem.AllocatedMem[i]);
+  for (MemoryGroup *Group : {&CodeMem, &RWDataMem, &RODataMem}) {
+    for (sys::MemoryBlock &Block : Group->AllocatedMem)
+      sys::Memory::releaseMappedMemory(Block);
+    for (sys::MemoryBlock &Block : Group->PendingMem)
+      sys::Memory::releaseMappedMemory(Block);
+  }
 }
 
 } // namespace llvm
