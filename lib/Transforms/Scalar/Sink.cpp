@@ -169,7 +169,8 @@ static bool isSafeToMove(Instruction *Inst, AliasAnalysis *AA,
         return false;
   }
 
-  if (isa<TerminatorInst>(Inst) || isa<PHINode>(Inst))
+  if (isa<TerminatorInst>(Inst) || isa<PHINode>(Inst) ||
+      isa<LandingPadInst>(Inst))
     return false;
 
   // Convergent operations can only be moved to control equivalent blocks.
