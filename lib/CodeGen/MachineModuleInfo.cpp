@@ -227,6 +227,7 @@ bool MachineModuleInfo::doFinalization(Module &M) {
   AddrLabelSymbols = nullptr;
 
   Context.reset();
+  FuncInfoMap.clear();
 
   delete ObjFileMMI;
   ObjFileMMI = nullptr;
