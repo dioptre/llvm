@@ -155,7 +155,9 @@ public:
     NVCL,       // NVIDIA OpenCL
     AMDHSA,     // AMD HSA Runtime
     PS4,
-    LastOSType = PS4
+    TvOS,       // Apple tvOS
+    WatchOS,    // Apple watchOS
+    LastOSType = WatchOS
   };
   enum EnvironmentType {
     UnknownEnvironment,
@@ -398,6 +400,11 @@ public:
   /// "darwin" and "osx" as OS X triples.
   bool isMacOSX() const {
     return getOS() == Triple::Darwin || getOS() == Triple::MacOSX;
+  }
+
+  /// Is this an Apple watchOS triple.
+  bool isWatchOS() const {
+     return getOS() == Triple::WatchOS;
   }
 
   /// Is this an iOS triple.
