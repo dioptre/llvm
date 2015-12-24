@@ -429,6 +429,24 @@ enum MacinfoRecordType {
   DW_MACINFO_vendor_ext = 0xff
 };
 
+enum MacroEntryType {
+   // Macro Information Entry Type Encodings
+   DW_MACRO_define = 0x01,
+   DW_MACRO_undef = 0x02,
+   DW_MACRO_start_file = 0x03,
+   DW_MACRO_end_file = 0x04,
+   DW_MACRO_define_indirect = 0x05,
+   DW_MACRO_undef_indirect = 0x06,
+   DW_MACRO_transparent_include = 0x07,
+   DW_MACRO_define_indirect_sup = 0x08,
+   DW_MACRO_undef_indirect_sup = 0x09,
+   DW_MACRO_transparent_include_sup = 0x0a,
+   DW_MACRO_define_indirectx = 0x0b,
+   DW_MACRO_undef_indirectx = 0x0c,
+   DW_MACRO_lo_user = 0xe0,
+   DW_MACRO_hi_user = 0xff
+};
+
 enum CallFrameInfo {
   // Call frame instruction encodings
   DW_CFA_extended = 0x00,
